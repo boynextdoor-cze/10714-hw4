@@ -527,9 +527,9 @@ class Conv(TensorOp):
         out_W = (W - K + self.stride) // self.stride + 1
 
         inner_dim = K * K * C_in
-        A = A.as_strided(shape=(N, out_H, out_W, K, K, C_in), strides=(Ns, Hs * self.stride, Ws * self.stride, Hs, Ws, Cs)).reshape(N * out_H * out_W, inner_dim)
-        out = A @ B.reshape(inner_dim, C_out)
-        return out.reshape(N, out_H, out_W, C_out)
+        A = A.as_strided(shape=(N, out_H, out_W, K, K, C_in), strides=(Ns, Hs * self.stride, Ws * self.stride, Hs, Ws, Cs)).reshape((N * out_H * out_W, inner_dim))
+        out = A @ B.reshape((inner_dim, C_out))
+        return out.reshape((N, out_H, out_W, C_out))
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
