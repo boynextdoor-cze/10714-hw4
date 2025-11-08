@@ -615,7 +615,7 @@ class NDArray:
         ### BEGIN YOUR SOLUTION
         strides = tuple(stride if i not in axes else -stride for i, stride in enumerate(self.strides))
         offset = builtins.sum(self.strides[i] * (self.shape[i] - 1) for i in range(len(self.shape)) if i in axes)
-        out = NDArray.make(self.shape, strides=strides, offset=offset, device=self.device)
+        out = NDArray.make(self.shape, strides=strides, offset=offset, device=self.device, handle=self._handle)
         return out.compact()
         ### END YOUR SOLUTION
 
