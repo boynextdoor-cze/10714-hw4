@@ -10,7 +10,8 @@ from needle import init
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
-from .backend_selection import array_api, NDArray, Device, all_devices, default_device, cpu
+from .backend_selection import array_api, NDArray, default_device
+from .backend_selection import Device, cpu, all_devices
 
 class Op:
     """Operator definition."""
