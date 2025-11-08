@@ -412,7 +412,7 @@ class Split(TensorTupleOp):
         for i in range(input_shape[self.axis]):
             slices = [slice(None)] * len(input_shape)
             slices[self.axis] = i
-            output.append(reshape(A[tuple(slices)].compact(), output_shape))
+            output.append(A[tuple(slices)].compact().reshape(output_shape))
         return tuple(output)
         ### END YOUR SOLUTION
 
