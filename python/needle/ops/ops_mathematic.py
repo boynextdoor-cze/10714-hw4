@@ -155,7 +155,12 @@ class Transpose(TensorOp):
 
     def compute(self, a):
         # BEGIN YOUR SOLUTION
-        return array_api.swapaxes(a, *self.axes) if self.axes else array_api.swapaxes(a, -1, -2)
+        if self.axes is None:
+            axes = tuple(range(len(a.shape) - 2)) + (len(a.shape) - 1, len(a.shape) - 2)
+        else:
+            axes = list(range(len(a.shape)))
+            axes[self.axes[0]], axes[self.axes[1]] = axes[self.axes[1]], axes[self.axes[0]]
+        return a.permute(axes)
         # END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
@@ -240,7 +245,7 @@ class Summation(TensorOp):
         # BEGIN YOUR SOLUTION
         a = node.inputs[0]
         shape = list(a.shape)
-        axes = self.axes if self.axes is not None else tuple(range(len(shape)))
+        axes = (self.axes,) if isinstance(self.axes, int) else self.axes if self.axes is not None else tuple(range(len(shape)))
         for axis in axes:
             shape[axis] = 1
         shape = tuple(shape)
@@ -255,7 +260,7 @@ def summation(a, axes=None):
 class MatMul(TensorOp):
     def compute(self, a, b):
         # BEGIN YOUR SOLUTION
-        return array_api.matmul(a, b)
+        return a @ b
         # END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
