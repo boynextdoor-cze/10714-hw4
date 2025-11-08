@@ -467,7 +467,7 @@ class Dilate(TensorOp):
                 continue
             out_shape[axis] *= self.dilation + 1
             slices[axis] = slice(None, None, self.dilation + 1)
-        out = array_api.fill(out_shape, 0, dtype=a.dtype, device=a.device)
+        out = array_api.full(out_shape, 0, dtype=a.dtype, device=a.device)
         out[tuple(slices)] = a
         return out
         ### END YOUR SOLUTION
