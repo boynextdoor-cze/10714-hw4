@@ -72,7 +72,7 @@ class DataLoader:
         if self.index >= len(self.ordering):
             raise StopIteration
         batch_indices = self.ordering[self.index]
-        batch = [Tensor.make_const(x) for x in self.dataset[batch_indices]]
+        batch = [Tensor(x) for x in self.dataset[batch_indices]]
         self.index += 1
         return batch
         # END YOUR SOLUTION
