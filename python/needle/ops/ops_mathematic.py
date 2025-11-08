@@ -450,17 +450,31 @@ def flip(a, axes):
 
 class Dilate(TensorOp):
     def __init__(self, axes: tuple, dilation: int):
-        self.axes = axes
+        if isinstance(axes, int):
+            self.axes = (axes,)
+        else:
+            self.axes = axes
         self.dilation = dilation
 
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if self.axes is None or self.dilation <= 0:
+            return a
+        out_shape = list(a.shape)
+        slices = [slice(None)] * len(out_shape)
+        for axis in self.axes:
+            if axis >= len(out_shape):
+                continue
+            out_shape[axis] *= self.dilation + 1
+            slices[axis] = slice(None, None, self.dilation + 1)
+        out = array_api.fill(out_shape, 0, dtype=a.dtype, device=a.device)
+        out[tuple(slices)] = a
+        return out
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return undilate(out_grad, self.axes, self.dilation)
         ### END YOUR SOLUTION
 
 
@@ -470,17 +484,27 @@ def dilate(a, axes, dilation):
 
 class UnDilate(TensorOp):
     def __init__(self, axes: tuple, dilation: int):
-        self.axes = axes
+        if isinstance(axes, int):
+            self.axes = (axes,)
+        else:
+            self.axes = axes
         self.dilation = dilation
 
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if self.axes is None or self.dilation <= 0:
+            return a
+        slices = [slice(None)] * len(a.shape)
+        for axis in self.axes:
+            if axis >= len(a.shape):
+                continue
+            slices[axis] = slice(None, None, self.dilation + 1)
+        return a[tuple(slices)]
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return dilate(out_grad, self.axes, self.dilation)
         ### END YOUR SOLUTION
 
 
