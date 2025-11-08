@@ -612,7 +612,10 @@ class NDArray:
         Note: compact() before returning.
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        strides = tuple(stride if i not in axes else -stride for i, stride in enumerate(self.strides))
+        offset = sum(stride * (shape - 1) for stride, shape in zip(strides, self.shape))
+        out = NDArray.make(self.shape, strides=strides, offset=offset, device=self.device)
+        return out.compact()
         ### END YOUR SOLUTION
 
     def pad(self, axes: tuple[tuple[int, int], ...]) -> "NDArray":
