@@ -22,11 +22,17 @@ class CIFAR10Dataset(Dataset):
         y - numpy array of labels
         """
         ### BEGIN YOUR SOLUTION
-        with open(os.path.join(base_folder, 'data_batch_1' if train else 'test_batch'), 'rb') as f:
-            data = pickle.load(f, encoding='bytes')
-        self.X = data['data'].reshape(-1, 3, 32, 32)
-        self.X /= 255.0
-        self.y = np.array(data['labels'])
+        batch_names = ['data_batch_1', 'data_batch_2', 'data_batch_3', 'data_batch_4', 'data_batch_5']
+        data_list = []
+        labels = []
+        for batch_name in batch_names if train else ['test_batch']:
+            with open(os.path.join(base_folder, batch_name), 'rb') as f:
+                data = pickle.load(f, encoding='bytes')
+                data_list.append(data[b'data'])
+                labels.append(data[b'labels'])
+        self.X = np.concatenate(data_list)
+        self.X = self.X.reshape(-1, 3, 32, 32).astype(np.float32) / 255.0
+        self.y = np.concatenate(labels).astype(np.int32)
         ### END YOUR SOLUTION
 
     def __getitem__(self, index) -> object:
