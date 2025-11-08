@@ -519,7 +519,7 @@ class Conv(TensorOp):
 
     def compute(self, A, B):
         ### BEGIN YOUR SOLUTION
-        A = A.pad((0, 0), (self.padding, self.padding), (self.padding, self.padding), (0, 0)).compact()
+        A = A.pad(((0, 0), (self.padding, self.padding), (self.padding, self.padding), (0, 0))).compact()
         N, H, W, C_in = A.shape
         K, _, _, C_out = B.shape
         Ns, Hs, Ws, Cs = A.strides
