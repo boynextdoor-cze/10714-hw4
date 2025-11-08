@@ -35,6 +35,8 @@ class LogSumExp(TensorOp):
 
     def compute(self, Z: NDArray) -> NDArray:
         # BEGIN YOUR SOLUTION
+        if self.axes is None:
+            self.axes = tuple(range(len(Z.shape)))
         self.max_z = Z.max(axis=self.axes, keepdims=True)
         result = array_api.log(array_api.sum(array_api.exp(
             Z - self.max_z.broadcast_to(Z.shape)), self.axes))
