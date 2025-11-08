@@ -1,6 +1,5 @@
 """Core data structures."""
 import needle
-from .backend_numpy import Device, all_devices
 from typing import List, Optional, NamedTuple, Tuple, Union, Dict
 from collections import namedtuple
 import numpy
@@ -11,13 +10,7 @@ from needle import init
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
-# NOTE: we will import numpy as the array_api
-# as the backend for our computations, this line will change in later homeworks
-
-import numpy as array_api
-NDArray = numpy.ndarray
-
-from .backend_selection import array_api, NDArray, default_device, cpu
+from .backend_selection import array_api, NDArray, Device, all_devices, default_device, cpu
 
 class Op:
     """Operator definition."""
@@ -331,6 +324,9 @@ class Tensor(Value):
             return needle.ops.EWiseAdd()(self, needle.ops.Negate()(other))
         else:
             return needle.ops.AddScalar(-other)(self)
+        
+    def __rsub__(self, other):
+        return needle.ops.AddScalar(other)(needle.ops.Negate()(self))
 
     def __truediv__(self, other):
         if isinstance(other, Tensor):

@@ -262,7 +262,10 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        assert prod(self.shape) == prod(new_shape), ValueError(
+            "Product of current shape must be equal to product of new shape")
+        new_strides = NDArray.compact_strides(new_shape)
+        return self.as_strided(new_shape, new_strides)
         ### END YOUR SOLUTION
 
     def permute(self, new_axes: tuple[int, ...]) -> "NDArray":
@@ -287,7 +290,9 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        new_shape = tuple(self.shape[i] for i in new_axes)
+        new_strides = tuple(self.strides[i] for i in new_axes)
+        return self.as_strided(new_shape, new_strides)
         ### END YOUR SOLUTION
 
     def broadcast_to(self, new_shape: tuple[int, ...]) -> "NDArray":
@@ -311,7 +316,11 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        assert all(new_shape[i] == self.shape[i] for i in range(len(
+            new_shape)) if self.shape[i] != 1), ValueError("New shape must be the same as the original shape")
+        new_strides = tuple(
+            self.strides[i] if self.shape[i] != 1 else 0 for i in range(len(new_shape)))
+        return self.as_strided(new_shape, new_strides)
         ### END YOUR SOLUTION]
 
     ### Get and set elements
@@ -378,7 +387,17 @@ class NDArray:
         assert len(slices) == self.ndim, "Need indexes equal to number of dimensions"
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        assert all(slices[i].stop > slices[i].start for i in range(
+            len(slices))), "Slice must have positive size"
+        assert all(slices[i].step > 0 for i in range(
+            len(slices))), "Slice must have positive step"
+        new_shape = tuple((slice.stop - slice.start +
+                          slice.step - 1) // slice.step for slice in slices)
+        new_strides = tuple(
+            self.strides[i] * slices[i].step for i in range(len(slices)))
+        new_offset = reduce(
+            lambda x, y: x + y, (self.strides[i] * slices[i].start for i in range(len(slices))))
+        return NDArray.make(new_shape, strides=new_strides, device=self.device, handle=self._handle, offset=new_offset)
         ### END YOUR SOLUTION
 
     def __setitem__(self, idxs: int | slice | tuple[int | slice, ...], other: Union["NDArray", float]) -> None:
