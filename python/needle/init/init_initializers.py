@@ -29,10 +29,12 @@ def kaiming_uniform(fan_in: int, fan_out: int, nonlinearity: str = "relu", **kwa
 def kaiming_uniform(fan_in, fan_out, shape=None, nonlinearity="relu", **kwargs):
     assert nonlinearity == "relu", "Only relu supported currently"
     ### BEGIN YOUR SOLUTION
+    gain = math.sqrt(2)
+    bound = gain * math.sqrt(3 / fan_in)
     if shape is not None:
-        return kaiming_uniform(shape[0], shape[1], **kwargs)
+        return rand(shape[0], shape[1], low=-bound, high=bound, **kwargs)
     else:
-        return kaiming_uniform(fan_in, fan_out, **kwargs)
+        return rand(fan_in, fan_out, low=-bound, high=bound, **kwargs)
     ### END YOUR SOLUTION
 
 

@@ -538,10 +538,10 @@ class Conv(TensorOp):
         X, W = node.inputs
         dilated_outgrad = dilate(out_grad, (1, 2), self.stride - 1)
         W_grad = conv(transpose(X, (0, 3)), transpose(transpose(dilated_outgrad, (0, 1)), (1, 2)),
-                       padding=2 * self.padding)
+                       padding=self.padding)
         W_grad = transpose(W_grad, (0, 1))
         W_grad = transpose(W_grad, (1, 2))
-        X_grad = conv(dilated_outgrad, flip(transpose(W, (2, 3)), axes=(0, 1)), padding=(W.shape[0] - 1 - self.padding))
+        X_grad = conv(dilated_outgrad, flip(transpose(W, (2, 3)), axes=(0, 1)), padding=W.shape[0] - 1 - self.padding)
         return X_grad, W_grad
         ### END YOUR SOLUTION
 
