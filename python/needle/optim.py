@@ -25,7 +25,15 @@ class SGD(Optimizer):
 
     def step(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for param in self.params:
+            if param.grad is None:
+                continue
+            if param not in self.u:
+                self.u[param] = ndl.zeros_like(param.grad, requires_grad=False)
+            self.u[param] = self.momentum * self.u[param].data + \
+                (1 - self.momentum) * \
+                (self.weight_decay * param.data + param.grad.data)
+            param.data -= self.lr * self.u[param].data
         ### END YOUR SOLUTION
 
     def clip_grad_norm(self, max_norm=0.25):
@@ -61,5 +69,21 @@ class Adam(Optimizer):
 
     def step(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for param in self.params:
+            if param.grad is None:
+                continue
+            if param not in self.m:
+                self.m[param] = ndl.zeros_like(param.grad, requires_grad=False)
+            if param not in self.v:
+                self.v[param] = ndl.zeros_like(param.grad, requires_grad=False)
+            self.m[param] = self.beta1 * self.m[param].data + \
+                (1 - self.beta1) * (param.grad.data + self.weight_decay * param.data)
+            self.v[param] = self.beta2 * self.v[param].data + \
+                (1 - self.beta2) * (param.grad.data +
+                                    self.weight_decay * param.data) ** 2
+            m_hat = self.m[param].data / (1 - self.beta1 ** (self.t + 1))
+            v_hat = self.v[param].data / (1 - self.beta2 ** (self.t + 1))
+            delta = self.lr * m_hat.data / (v_hat.data ** 0.5 + self.eps)
+            param.data -= delta.data
+        self.t += 1
         ### END YOUR SOLUTION
