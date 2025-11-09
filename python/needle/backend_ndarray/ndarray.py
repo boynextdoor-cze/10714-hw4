@@ -600,13 +600,23 @@ class NDArray:
         return view, out
 
     def sum(self, axis: int | tuple[int, ...] | list[int] | None = None, keepdims: bool = False) -> "NDArray":
-        view, out = self.reduce_view_out(axis, keepdims=keepdims)
-        self.device.reduce_sum(view.compact()._handle, out._handle, view.shape[-1])
+        if isinstance(axis, (tuple, list)):
+            for a in axis:
+                view, out = self.reduce_view_out(a, keepdims=keepdims)
+                self.device.reduce_sum(view.compact()._handle, out._handle, view.shape[-1])
+        else:
+            view, out = self.reduce_view_out(axis, keepdims=keepdims)
+            self.device.reduce_sum(view.compact()._handle, out._handle, view.shape[-1])
         return out
 
     def max(self, axis: int | tuple[int, ...] | list[int] | None = None, keepdims: bool = False) -> "NDArray":
-        view, out = self.reduce_view_out(axis, keepdims=keepdims)
-        self.device.reduce_max(view.compact()._handle, out._handle, view.shape[-1])
+        if isinstance(axis, (tuple, list)):
+            for a in axis:
+                view, out = self.reduce_view_out(a, keepdims=keepdims)
+                self.device.reduce_max(view.compact()._handle, out._handle, view.shape[-1])
+        else:
+            view, out = self.reduce_view_out(axis, keepdims=keepdims)
+            self.device.reduce_max(view.compact()._handle, out._handle, view.shape[-1])
         return out
 
     def flip(self, axes: tuple[int, ...]) -> "NDArray":
