@@ -41,10 +41,10 @@ class Conv(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        x = ops.transpose(x, (0, 2, 3, 1))
+        x = ops.transpose(ops.transpose(x, (2, 3)), (1, 2))
         out = ops.conv(x, self.weight, padding=self.padding, stride=self.stride)
         if self.bias is not None:
             out = out + self.bias.broadcast_to(out.shape)
-        out = ops.transpose(out, (0, 3, 1, 2))
+        out = ops.transpose(ops.transpose(out, (1, 2)), (2, 3))
         return out
         ### END YOUR SOLUTION
