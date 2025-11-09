@@ -6,6 +6,7 @@ from needle import ops
 import needle.init as init
 import numpy as np
 from .nn_basic import Parameter, Module
+import math
 
 
 class Conv(Module):
@@ -28,9 +29,10 @@ class Conv(Module):
         self.stride = stride
 
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.kaiming_uniform(in_channels * kernel_size * kernel_size, out_channels, device=device, dtype=dtype))
+        self.weight = Parameter(init.kaiming_uniform(in_channels, out_channels, device=device, dtype=dtype))
         if bias:
-            self.bias = Parameter(init.kaiming_uniform(out_channels, 1, device=device, dtype=dtype))
+            bound = 1 / math.sqrt(in_channels * kernel_size * kernel_size)
+            self.bias = Parameter(init.kaiming_uniform(out_channels, 1, low=-bound, high=bound, device=device, dtype=dtype))
         else:
             self.bias = None
         self.padding = (kernel_size - 1) // 2
