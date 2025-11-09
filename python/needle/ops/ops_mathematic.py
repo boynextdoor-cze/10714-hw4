@@ -179,7 +179,7 @@ class Reshape(TensorOp):
 
     def compute(self, a):
         # BEGIN YOUR SOLUTION
-        return array_api.reshape(a, self.shape)
+        return array_api.reshape(a.compact(), self.shape)
         # END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
@@ -334,7 +334,7 @@ class ReLU(TensorOp):
 
     def gradient(self, out_grad, node):
         # BEGIN YOUR SOLUTION
-        return out_grad * Tensor(node.inputs[0].cached_data > 0)
+        return out_grad * Tensor(node.inputs[0].cached_data > 0, device=node.inputs[0].device)
         # END YOUR SOLUTION
 
 
@@ -535,31 +535,12 @@ class Conv(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        # X, W = node.inputs
-        # dilated_outgrad = dilate(out_grad, (1, 2), self.stride - 1)
-        # W_grad = conv(transpose(X, (0, 3)), permute(dilated_outgrad, (1, 2, 0, 3)), padding=self.padding)
-        # W_grad = permute(W_grad, (1, 2, 0, 3))
-        # X_grad = conv(dilated_outgrad, flip(transpose(W, (2, 3)), axes=(0, 1)), padding=W.shape[0] - 1 - self.padding)
-        # return X_grad, W_grad
-        A, B = node.inputs
-        N, H, W, C_in = A.shape
-        K, _, _, C_out = B.shape
-
-        # For strides != 1
-        out_grad = dilate(out_grad, axes=(1, 2), dilation=self.stride-1)
-
-        # A.grad
-        _B = permute(B, (0, 1, 3, 2))
-        _B = flip(_B, axes=(0, 1))
-        A_grad = conv(out_grad, _B, stride=1, padding=(K - 1 - self.padding))
-
-        # B.grad
-        _A = permute(A, (3, 1, 2, 0))
-        out_grad = permute(out_grad, (1, 2, 0, 3))
-        B_grad = conv(_A, out_grad, stride=1, padding=self.padding)
-        B_grad = permute(B_grad, (1, 2, 0, 3))
-
-        return A_grad, B_grad
+        X, W = node.inputs
+        dilated_outgrad = dilate(out_grad, (1, 2), self.stride - 1)
+        W_grad = conv(transpose(X, (0, 3)), permute(dilated_outgrad, (1, 2, 0, 3)), padding=self.padding)
+        W_grad = permute(W_grad, (1, 2, 0, 3))
+        X_grad = conv(dilated_outgrad, flip(transpose(W, (2, 3)), axes=(0, 1)), padding=W.shape[0] - 1 - self.padding)
+        return X_grad, W_grad
         ### END YOUR SOLUTION
 
 
