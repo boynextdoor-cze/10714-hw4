@@ -33,7 +33,7 @@ class Conv(Module):
         if bias:
             bound = 1 / math.sqrt(in_channels * kernel_size * kernel_size)
             self.bias = Parameter(init.rand(out_channels, low=-bound, high=bound,
-                                  device=device, dtype=dtype)).reshape((1, 1, 1, out_channels))
+                                  device=device, dtype=dtype))
         else:
             self.bias = None
         self.padding = (kernel_size - 1) // 2
@@ -44,7 +44,7 @@ class Conv(Module):
         x = ops.permute(x, (0, 2, 3, 1))
         out = ops.conv(x, self.weight, padding=self.padding, stride=self.stride)
         if self.bias is not None:
-            out += self.bias.broadcast_to(out.shape)
+            out += self.bias.reshape((1, 1, 1, self.out_channels)).broadcast_to(out.shape)
         out = ops.permute(out, (0, 3, 1, 2))
         return out
         ### END YOUR SOLUTION
