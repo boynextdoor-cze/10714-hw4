@@ -11,12 +11,51 @@ class ResNet9(ndl.nn.Module):
     def __init__(self, device=None, dtype="float32"):
         super().__init__()
         ### BEGIN YOUR SOLUTION ###
-        raise NotImplementedError() ###
+        self.conv1 = ConvBN(3, 16, 7, 4, device=device, dtype=dtype)
+        self.conv2 = ConvBN(16, 32, 3, 2, device=device, dtype=dtype)
+        self.conv3 = ConvBN(32, 32, 3, 1, device=device, dtype=dtype)
+        self.conv4 = ConvBN(32, 32, 3, 1, device=device, dtype=dtype)
+        self.conv5 = ConvBN(32, 64, 3, 2, device=device, dtype=dtype)
+        self.conv6 = ConvBN(64, 128, 3, 2, device=device, dtype=dtype)
+        self.conv7 = ConvBN(128, 128, 3, 1, device=device, dtype=dtype)
+        self.conv8 = ConvBN(128, 128, 3, 1, device=device, dtype=dtype)
+        self.fc1 = nn.Linear(128, 128, device=device, dtype=dtype)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(128, 10, device=device, dtype=dtype)
         ### END YOUR SOLUTION
 
     def forward(self, x):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = self.conv7(x)
+        x = self.conv8(x)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        return x
+        ### END YOUR SOLUTION
+
+
+class ConvBN(ndl.nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, device=None, dtype="float32"):
+        super().__init__()
+        ### BEGIN YOUR SOLUTION ###
+        self.conv = nn.Conv(in_channels, out_channels, kernel_size, stride, device=device, dtype=dtype)
+        self.bn = nn.BatchNorm2d(out_channels, device=device, dtype=dtype)
+        self.relu = nn.ReLU()
+        ### END YOUR SOLUTION
+
+    def forward(self, x):
+        ### BEGIN YOUR SOLUTION ###
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        return x
         ### END YOUR SOLUTION
 
 
