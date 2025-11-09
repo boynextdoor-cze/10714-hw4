@@ -540,7 +540,7 @@ class Conv(TensorOp):
         W_grad = conv(transpose(X, (0, 3)), transpose(transpose(dilated_outgrad, (0, 1)), (1, 2)),
                        padding=2 * self.padding)
         W_grad = transpose(W_grad, (0, 1))
-        X_grad = transpose(X_grad, (1, 2))
+        W_grad = transpose(W_grad, (1, 2))
         X_grad = conv(dilated_outgrad, flip(transpose(W, (2, 3)), axes=(0, 1)), padding=(W.shape[0] - 1 - self.padding))
         return X_grad, W_grad
         ### END YOUR SOLUTION
