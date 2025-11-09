@@ -29,7 +29,7 @@ class Conv(Module):
         self.stride = stride
 
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.kaiming_uniform(in_channels, out_channels, device=device, dtype=dtype))
+        self.weight = Parameter(init.kaiming_uniform(in_channels * kernel_size * kernel_size, out_channels * kernel_size * kernel_size, shape=(kernel_size, kernel_size, in_channels, out_channels),device=device, dtype=dtype))
         if bias:
             bound = 1 / math.sqrt(in_channels * kernel_size * kernel_size)
             self.bias = Parameter(init.rand(out_channels, low=-bound, high=bound,
@@ -44,7 +44,7 @@ class Conv(Module):
         x = ops.transpose(ops.transpose(x, (2, 3)), (1, 2))
         out = ops.conv(x, self.weight, padding=self.padding, stride=self.stride)
         if self.bias is not None:
-            out = out + self.bias.broadcast_to(out.shape)
+            out += self.bias.broadcast_to(out.shape)
         out = ops.transpose(ops.transpose(out, (1, 2)), (2, 3))
         return out
         ### END YOUR SOLUTION
