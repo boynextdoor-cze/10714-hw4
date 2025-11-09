@@ -537,9 +537,8 @@ class Conv(TensorOp):
         ### BEGIN YOUR SOLUTION
         X, W = node.inputs
         dilated_outgrad = dilate(out_grad, (1, 2), self.stride - 1)
-        W_grad = conv(transpose(X, (0, 3)), transpose(transpose(dilated_outgrad, (0, 1)), (1, 2)), padding=self.padding)
-        W_grad = transpose(W_grad, (0, 1))
-        W_grad = transpose(W_grad, (1, 2))
+        W_grad = conv(transpose(X, (0, 3)), permute(dilated_outgrad, (1, 2, 0, 3)), padding=self.padding)
+        W_grad = permute(W_grad, (1, 2, 0, 3))
         X_grad = conv(dilated_outgrad, flip(transpose(W, (2, 3)), axes=(0, 1)), padding=W.shape[0] - 1 - self.padding)
         return X_grad, W_grad
         ### END YOUR SOLUTION
@@ -549,3 +548,24 @@ def conv(a, b, stride=1, padding=1):
     return Conv(stride, padding)(a, b)
 
 
+class Permute(TensorOp):
+    def __init__(self, axes: tuple):
+        self.axes = axes
+
+    def compute(self, a):
+        ### BEGIN YOUR SOLUTION
+        return a.compact().permute(self.axes)
+        ### END YOUR SOLUTION
+
+    def gradient(self, out_grad, node):
+        ### BEGIN YOUR SOLUTION
+        num_axes = len(self.axes)
+        index = [0] * num_axes
+        for i in range(num_axes):
+            index[self.axes[i]] = i
+        return permute(out_grad, tuple(index))
+        ### END YOUR SOLUTION
+
+
+def permute(a, axes):
+    return Permute(axes)(a)
