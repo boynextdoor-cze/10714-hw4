@@ -220,7 +220,10 @@ class BroadcastTo(TensorOp):
                 broadcast_axes.append(i)
 
         if broadcast_axes:
-            result = summation(out_grad, axes=tuple(broadcast_axes))
+            # result = summation(out_grad, axes=tuple(broadcast_axes))
+            result = out_grad
+            for i, axis in enumerate(broadcast_axes):
+                result = summation(result, axes=(axis - i,))
         else:
             result = out_grad
 
