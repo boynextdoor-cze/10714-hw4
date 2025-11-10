@@ -86,6 +86,7 @@ class LanguageModel(nn.Module):
         self.linear = nn.Linear(hidden_size, output_size, device=device, dtype=dtype)
         self.num_layers = num_layers
         self.hidden_size = hidden_size
+        self.seq_len = seq_len
         ### END YOUR SOLUTION
 
     def forward(self, x, h=None):
@@ -105,7 +106,7 @@ class LanguageModel(nn.Module):
         x = self.embedding(x)
         x, h = self.sequence_model(x, h)
         bs = x.shape[1]
-        x = x.reshape((self.num_layers * bs, self.hidden_size))
+        x = x.reshape((self.seq_len * bs, self.hidden_size))
         x = self.linear(x)
         return x, h
         ### END YOUR SOLUTION
