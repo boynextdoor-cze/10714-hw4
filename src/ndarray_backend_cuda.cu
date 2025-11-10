@@ -278,14 +278,8 @@ void ScalarAdd(const CudaArray &a, scalar_t val, CudaArray *out) {
 // Define operation types for templated kernels
 __device__ scalar_t mul(scalar_t a, scalar_t b) { return a * b; }
 __device__ scalar_t div(scalar_t a, scalar_t b) { return a / b; }
-__device__ scalar_t max(scalar_t a, scalar_t b) { return fmaxf(a, b); }
-__device__ scalar_t eq(scalar_t a, scalar_t b) { return (a == b) ? 1.0f : 0.0f; }
-__device__ scalar_t ge(scalar_t a, scalar_t b) { return (a >= b) ? 1.0f : 0.0f; }
-__device__ scalar_t add(scalar_t a, scalar_t b) { return a + b; }
-__device__ scalar_t power(scalar_t a, scalar_t b) { return powf(a, b); }
-__device__ scalar_t log(scalar_t a) { return logf(a); }
-__device__ scalar_t exp(scalar_t a) { return expf(a); }
-__device__ scalar_t tanh(scalar_t a) { return tanhf(a); }
+__device__ scalar_t eq(scalar_t a, scalar_t b) { return a == b; }
+__device__ scalar_t ge(scalar_t a, scalar_t b) { return a >= b; }
 
 // Templated kernels for different operations
 // template <OpType op>
@@ -341,7 +335,7 @@ void ScalarDiv(const CudaArray &a, scalar_t val, CudaArray *out) {
 
 void ScalarPower(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, power);
+  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, pow);
 }
 
 void EwiseMaximum(const CudaArray &a, const CudaArray &b, CudaArray *out) {
