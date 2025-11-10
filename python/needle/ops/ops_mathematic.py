@@ -492,25 +492,14 @@ class UnDilate(TensorOp):
 
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        # if self.axes is None or self.dilation <= 0:
-        #     return a
-        # slices = [slice(None)] * len(a.shape)
-        # for axis in self.axes:
-        #     if axis >= len(a.shape):
-        #         continue
-        #     slices[axis] = slice(None, None, self.dilation + 1)
-        # return a[tuple(slices)]
-        if self.dilation == 0:
+        if self.axes is None or self.dilation <= 0:
             return a
-        out_shape = list(a.shape)
-        for i in self.axes:
-            out_shape[i] //= self.dilation + 1
-        out = array_api.empty(out_shape, device=a.device)
         slices = [slice(None)] * len(a.shape)
-        for dim in self.axes:
-            slices[dim] = slice(None, None, self.dilation+1)
-        out = a[tuple(slices)]
-        return out
+        for axis in self.axes:
+            if axis >= len(a.shape):
+                continue
+            slices[axis] = slice(None, None, self.dilation + 1)
+        return a[tuple(slices)]
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
