@@ -157,7 +157,16 @@ class LSTMCell(Module):
         """
         super().__init__()
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+        bound = 1 / math.sqrt(hidden_size)
+        self.W_ih = Parameter(init.rand(input_size, 4 * hidden_size, low=-bound, high=bound, device=device, dtype=dtype))
+        self.W_hh = Parameter(init.rand(hidden_size, 4 * hidden_size, low=-bound, high=bound, device=device, dtype=dtype))
+        if bias:
+            self.bias_ih = Parameter(init.rand(4 * hidden_size, low=-bound, high=bound, device=device, dtype=dtype))
+            self.bias_hh = Parameter(init.rand(4 * hidden_size, low=-bound, high=bound, device=device, dtype=dtype))
+        self.sigmoid = Sigmoid()
         ### END YOUR SOLUTION
 
 
@@ -178,7 +187,24 @@ class LSTMCell(Module):
             element in the batch.
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        h0, c0 = None, None
+        batch_size = X.shape[0]
+        if h is not None:
+            h0, c0 = h
+        else:
+            h0 = init.zeros(batch_size, self.hidden_size, device=X.device, dtype=X.dtype)
+            c0 = init.zeros(batch_size, self.hidden_size, device=X.device, dtype=X.dtype)
+        X = X @ self.W_ih + h0 @ self.W_hh
+        if self.bias:
+            X += self.bias_ih.reshape((1, 4 * self.hidden_size)).broadcast_to(X.shape) + self.bias_hh.reshape((1, 4 * self.hidden_size)).broadcast_to(X.shape)
+        X = list(ops.split(X, axis=1))
+        input_gate = self.sigmoid(ops.stack(X[:self.hidden_size], axis=1))
+        forget_gate = self.sigmoid(ops.stack(X[self.hidden_size:2*self.hidden_size], axis=1))
+        cell_gate = ops.tanh(ops.stack(X[2*self.hidden_size:3*self.hidden_size], axis=1))
+        output_gate = self.sigmoid(ops.stack(X[3*self.hidden_size:], axis=1))
+        c = forget_gate * c0 + input_gate * cell_gate
+        h = output_gate * ops.tanh(c)
+        return h, c
         ### END YOUR SOLUTION
 
 
@@ -206,7 +232,14 @@ class LSTM(Module):
             of shape (4*hidden_size,).
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        self.lstm_cells = []
+        for i in range(num_layers):
+            if i == 0:
+                self.lstm_cells.append(LSTMCell(input_size, hidden_size, bias, device, dtype))
+            else:
+                self.lstm_cells.append(LSTMCell(hidden_size, hidden_size, bias, device, dtype))
         ### END YOUR SOLUTION
 
     def forward(self, X, h=None):
@@ -227,7 +260,20 @@ class LSTM(Module):
             h_n of shape (num_layers, bs, hidden_size) containing the final hidden cell state for each element in the batch.
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        seq_len, bs, input_size = X.shape
+        if h is None:
+            h0 = init.zeros(self.num_layers, bs, self.hidden_size, device=X.device, dtype=X.dtype)
+            c0 = init.zeros(self.num_layers, bs, self.hidden_size, device=X.device, dtype=X.dtype)
+        else:
+            h0, c0 = h
+        X = list(ops.split(X, axis=0))
+        h = list(ops.split(h0, axis=0))
+        c = list(ops.split(c0, axis=0))
+        for t in range(seq_len):
+            for i, lstm_cell in enumerate(self.lstm_cells):
+                X[t], c[i] = lstm_cell(X[t], (h[i], c[i]))
+                h[i] = X[t]
+        return ops.stack(X, axis=0), (ops.stack(h, axis=0), ops.stack(c, axis=0))
         ### END YOUR SOLUTION
 
 class Embedding(Module):
