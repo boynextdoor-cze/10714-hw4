@@ -273,7 +273,7 @@ class LSTM(Module):
             for i, lstm_cell in enumerate(self.lstm_cells):
                 X[t], c[i] = lstm_cell(X[t], (h[i], c[i]))
                 h[i] = X[t]
-        return ops.stack(X, axis=0), (ops.stack(h, axis=0), ops.stack(c, axis=0))
+        return ops.stack(X, axis=0), ((ops.stack(h, axis=0), ops.stack(c, axis=0)))
         ### END YOUR SOLUTION
 
 class Embedding(Module):
