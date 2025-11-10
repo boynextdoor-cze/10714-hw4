@@ -276,87 +276,42 @@ void ScalarAdd(const CudaArray &a, scalar_t val, CudaArray *out) {
  */
 
 // Define operation types for templated kernels
-enum class OpType { MUL, DIV, MAX, EQ, GE, ADD, POWER, LOG, EXP, TANH };
+__device__ scalar_t mul(scalar_t a, scalar_t b) { return a * b; }
+__device__ scalar_t div(scalar_t a, scalar_t b) { return a / b; }
+__device__ scalar_t max(scalar_t a, scalar_t b) { return fmaxf(a, b); }
+__device__ scalar_t eq(scalar_t a, scalar_t b) { return (a == b) ? 1.0f : 0.0f; }
+__device__ scalar_t ge(scalar_t a, scalar_t b) { return (a >= b) ? 1.0f : 0.0f; }
+__device__ scalar_t add(scalar_t a, scalar_t b) { return a + b; }
+__device__ scalar_t power(scalar_t a, scalar_t b) { return powf(a, b); }
+__device__ scalar_t log(scalar_t a) { return logf(a); }
+__device__ scalar_t exp(scalar_t a) { return expf(a); }
+__device__ scalar_t tanh(scalar_t a) { return tanhf(a); }
 
 // Templated kernels for different operations
-template <OpType op>
+// template <OpType op>
 __global__ void EwiseKernel(const scalar_t *a, const scalar_t *b, scalar_t *out,
-                            size_t size) {
+                            size_t size, scalar_t (*op)(scalar_t, scalar_t)) {
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size) {
-    switch (op) {
-    case OpType::MUL:
-      out[gid] = a[gid] * b[gid];
-      break;
-    case OpType::DIV:
-      out[gid] = a[gid] / b[gid];
-      break;
-    case OpType::MAX:
-      out[gid] = fmaxf(a[gid], b[gid]);
-      break;
-    case OpType::EQ:
-      out[gid] = (a[gid] == b[gid]) ? 1.0f : 0.0f;
-      break;
-    case OpType::GE:
-      out[gid] = (a[gid] >= b[gid]) ? 1.0f : 0.0f;
-      break;
-    case OpType::ADD:
-      out[gid] = a[gid] + b[gid];
-      break;
-    case OpType::POWER:
-      out[gid] = powf(a[gid], b[gid]);
-      break;
-    }
+    out[gid] = op(a[gid], b[gid]);
   }
 }
 
-template <OpType op>
+// template <OpType op>
 __global__ void ScalarKernel(const scalar_t *a, scalar_t val, scalar_t *out,
-                             size_t size) {
+                             size_t size, scalar_t (*op)(scalar_t, scalar_t)) {
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size) {
-    switch (op) {
-    case OpType::MUL:
-      out[gid] = a[gid] * val;
-      break;
-    case OpType::DIV:
-      out[gid] = a[gid] / val;
-      break;
-    case OpType::MAX:
-      out[gid] = fmaxf(a[gid], val);
-      break;
-    case OpType::EQ:
-      out[gid] = (a[gid] == val) ? 1.0f : 0.0f;
-      break;
-    case OpType::GE:
-      out[gid] = (a[gid] >= val) ? 1.0f : 0.0f;
-      break;
-    case OpType::ADD:
-      out[gid] = a[gid] + val;
-      break;
-    case OpType::POWER:
-      out[gid] = powf(a[gid], val);
-      break;
-    }
+    out[gid] = op(a[gid], val);
   }
 }
 
-template <OpType op>
+// template <OpType op>
 __global__ void EwiseUnaryKernel(const scalar_t *a, scalar_t *out,
-                                 size_t size) {
+                                 size_t size, scalar_t (*op)(scalar_t)) {
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size) {
-    switch (op) {
-    case OpType::LOG:
-      out[gid] = logf(a[gid]);
-      break;
-    case OpType::EXP:
-      out[gid] = expf(a[gid]);
-      break;
-    case OpType::TANH:
-      out[gid] = tanhf(a[gid]);
-      break;
-    }
+    out[gid] = op(a[gid]);
   }
 }
 
@@ -366,139 +321,138 @@ __global__ void EwiseUnaryKernel(const scalar_t *a, scalar_t *out,
 
 void EwiseMul(const CudaArray &a, const CudaArray &b, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseKernel<OpType::MUL>
-      <<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+  EwiseKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size, mul);
 }
 
 void ScalarMul(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<OpType::MUL>
-      <<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, mul);
 }
 
 void EwiseDiv(const CudaArray &a, const CudaArray &b, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseKernel<OpType::DIV>
-      <<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+  EwiseKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size, div);
 }
 
 void ScalarDiv(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<OpType::DIV>
-      <<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, div);
 }
 
 void ScalarPower(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<OpType::POWER>
-      <<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, power);
 }
 
 void EwiseMaximum(const CudaArray &a, const CudaArray &b, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseKernel<OpType::MAX>
-      <<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+  EwiseKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size, max);
 }
 
 void ScalarMaximum(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<OpType::MAX>
-      <<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+    ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, max);
 }
 
 void EwiseEq(const CudaArray &a, const CudaArray &b, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseKernel<OpType::EQ>
-      <<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+  EwiseKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size, eq);
 }
 
 void ScalarEq(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<OpType::EQ>
-      <<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, eq);
 }
 
 void EwiseGe(const CudaArray &a, const CudaArray &b, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseKernel<OpType::GE>
-      <<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+  EwiseKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size, ge);
 }
 
 void ScalarGe(const CudaArray &a, scalar_t val, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  ScalarKernel<OpType::GE>
-      <<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+  ScalarKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size, ge);
 }
 
 void EwiseLog(const CudaArray &a, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseUnaryKernel<OpType::LOG>
-      <<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size);
+  EwiseUnaryKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, log);
 }
 
 void EwiseExp(const CudaArray &a, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseUnaryKernel<OpType::EXP>
-      <<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size);
+  EwiseUnaryKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, exp);
 }
 
 void EwiseTanh(const CudaArray &a, CudaArray *out) {
   CudaDims dim = CudaOneDim(out->size);
-  EwiseUnaryKernel<OpType::TANH>
-      <<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size);
+  EwiseUnaryKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, tanh);
 }
 
 #define V 2
 
-__global__ void MatmulKernel(const scalar_t *a, const scalar_t *b,
-                             scalar_t *out, uint32_t M, uint32_t N,
-                             uint32_t P) {
-  // size_t i = blockIdx.x * blockDim.x + threadIdx.x;
-  // size_t j = blockIdx.y * blockDim.y + threadIdx.y;
-  // if (i < M && j < P) {
-  //   out[i * P + j] = 0;
-  //   for (int k = 0; k < N; k++) {
-  //     out[i * P + j] += a[i * N + k] * b[k * P + j];
-  //   }
-  // }
-
-  // Storing tiles into shared memory, which is local to each block and faster
-  __shared__ scalar_t tile_a[TILE][TILE];
-  __shared__ scalar_t tile_b[TILE][TILE];
-
-  // Compute row and column index in `out`
-  int row = blockIdx.x * TILE + threadIdx.x;
-  int col = blockIdx.y * TILE + threadIdx.y;
-
-  scalar_t ans = 0;
-
-  // Loop over tiles of A and B required to compute out[row, col]
-  for (int t = 0; t < N; t += TILE) {
-    // Load tiles into shared memory, each thread loads one element
-    if (row < M && t + threadIdx.y < N) {
-      tile_a[threadIdx.x][threadIdx.y] = a[row * N + t + threadIdx.y];
-    } else {
-      tile_a[threadIdx.x][threadIdx.y] = 0.0;
+__global__ void MatmulKernel(const scalar_t *A, const scalar_t *B, scalar_t *C,
+                             size_t M, size_t N, size_t P) {
+  __shared__ scalar_t sA[TILE][TILE], sB[TILE][TILE];
+  size_t yblock = blockIdx.y;
+  size_t xblock = blockIdx.x;
+  size_t nthreads = blockDim.x * blockDim.y;
+  size_t tid = threadIdx.y * blockDim.x + threadIdx.x;
+  scalar_t c[V][V] = {0};
+  scalar_t a[V] = {0}, b[V] = {0};
+  for (size_t ko = 0; ko < N; ko += TILE) {
+    __syncthreads();
+    for (size_t j = 0; j < TILE * TILE / nthreads; ++j) {
+      size_t x = (j * nthreads + tid) / TILE;
+      size_t y = (j * nthreads + tid) % TILE;
+      if (ko + y < N && xblock * TILE + x < M) {
+        sA[x][y] = A[(xblock * TILE + x) * N + ko + y];
+      }
+      if (ko + x < N && yblock * TILE + y < P) {
+        sB[x][y] = B[(ko + x) * P + yblock * TILE + y];
+      }
     }
-
-    if (t + threadIdx.x < N && col < P) {
-      tile_b[threadIdx.x][threadIdx.y] = b[(t + threadIdx.x) * P + col];
-    } else {
-      tile_b[threadIdx.x][threadIdx.y] = 0.0;
+    __syncthreads();
+    for (size_t ki = 0; ki < min((size_t)TILE, N - ko); ++ki) {
+      if (threadIdx.x * V < TILE && threadIdx.y * V < TILE) {
+        for (size_t i = 0; i < V; ++i) {
+          size_t idx = threadIdx.x * V + i;
+          if (idx < TILE) {
+            a[i] = sA[idx][ki];
+          } else {
+            break;
+          }
+        }
+        for (size_t i = 0; i < V; ++i) {
+          size_t idx = threadIdx.y * V + i;
+          if (idx < TILE) {
+            b[i] = sB[ki][idx];
+          } else {
+            break;
+          }
+        }
+        for (size_t i = 0; i < V; ++i) {
+          for (size_t j = 0; j < V; ++j) {
+            c[i][j] += a[i] * b[j];
+          }
+        }
+      }
     }
-    __syncthreads(); // Synchronize to ensure all elements of the tiles are
-                     // loaded
-
-    // Each thread computes one element of the output tile
-    for (int k = 0; k < TILE; ++k) {
-      ans += tile_a[threadIdx.x][k] * tile_b[k][threadIdx.y];
-    }
-    __syncthreads(); // Ensure all computations in this tile are complete
   }
-
-  // Write the result to the output matrix `out`
-  if (row < M && col < P) {
-    out[row * P + col] = ans;
+  if (threadIdx.x * V < TILE && threadIdx.y * V < TILE) {
+    size_t xbase = blockIdx.x * blockDim.x;
+    size_t ybase = blockIdx.y * blockDim.y;
+    for (size_t x = 0; x < V; ++x) {
+      for (size_t y = 0; y < V; ++y) {
+        size_t row = xbase + threadIdx.x * V + x;
+        size_t col = ybase + threadIdx.y * V + y;
+        if (row < M && col < P) {
+          C[P * row + col] = c[x][y];
+        } else {
+          break;
+        }
+      }
+    }
   }
 }
 
