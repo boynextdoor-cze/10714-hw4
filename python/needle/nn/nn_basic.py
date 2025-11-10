@@ -109,7 +109,7 @@ class Linear(Module):
 class Flatten(Module):
     def forward(self, X: Tensor) -> Tensor:
         # BEGIN YOUR SOLUTION
-        return ops.reshape(X, (X.shape[0], -1))
+        return ops.reshape(X, (X.shape[0], np.prod(X.shape[1:])))
         # END YOUR SOLUTION
 
 
