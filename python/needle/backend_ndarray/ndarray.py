@@ -643,8 +643,9 @@ class NDArray:
         """
         ### BEGIN YOUR SOLUTION
         output_shape = tuple(shape + padding[0] + padding[1] for shape, padding in zip(self.shape, axes))
-        output = NDArray.make(output_shape, device=self.device)
-        output.device.fill(output._handle, 0)
+        # output = NDArray.make(output_shape, device=self.device)
+        # output.device.fill(output._handle, 0)
+        output = self.device.full(output_shape, 0, dtype=self.dtype)
         output[tuple(slice(padding[0], shape + padding[0]) for shape, padding in zip(self.shape, axes))] = self
         return output
         ### END YOUR SOLUTION
