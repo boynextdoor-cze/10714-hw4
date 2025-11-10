@@ -218,16 +218,16 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
         X, y = ndl.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
         out, h = model(X, h)
         loss = loss_fn(out, y)
+        if isinstance(h, tuple):
+            h = (h[0].detach(), h[1].detach())
+        else:
+            h = h.detach()
         if opt is not None:
             opt.reset_grad()
             loss.backward()
             if clip is not None:
                 opt.clip_grad_norm(clip)
             opt.step()
-        if isinstance(h, tuple):
-            h = (h[0].detach(), h[1].detach())
-        else:
-            h = h.detach()
         total_loss += loss.numpy().item()
         total_acc += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy()).item()
     return total_acc / (nbatch - seq_len), total_loss / (nbatch - seq_len)
