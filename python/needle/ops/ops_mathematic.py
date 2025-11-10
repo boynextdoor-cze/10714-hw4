@@ -224,7 +224,7 @@ class BroadcastTo(TensorOp):
         else:
             result = out_grad
 
-        return reshape(result, node.inputs[0].shape)
+        return reshape(result, input_shape)
         # END YOUR SOLUTION
 
 
