@@ -95,8 +95,7 @@ def batchify(data, batch_size, device, dtype):
     ### BEGIN YOUR SOLUTION
     nbatch = len(data) // batch_size
     data = data[:nbatch * batch_size]
-    data = data.reshape(batch_size, -1)
-    return np.array(data, dtype=dtype, device=device).T
+    return np.array(data, dtype=dtype, device=device).reshape(batch_size, -1).T
     ### END YOUR SOLUTION
 
 
