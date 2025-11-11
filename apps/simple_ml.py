@@ -231,36 +231,31 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
     #     total_loss += loss.numpy().item()
     #     total_acc += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy()).item()
     # return total_acc / (nbatch - seq_len), total_loss / (nbatch - seq_len)
-    model.eval() if opt is None else model.train()
-    nbatch, batch_size = data.shape
-    errs = []
-    losses = []
-    h_prev = None
-
-    for i in range(nbatch - seq_len):
-        X, y = ndl.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
-        output, h_prev = model(X, h_prev)
-        loss = loss_fn(output, y)
-
-        if model.training:
+    if opt:
+        model.train()
+    else:
+        model.eval()
+    total_loss = 0
+    total_error = 0
+    n_batch, batch_size = data.shape
+    iter_num = n_batch - seq_len
+    for iter_idx in range(iter_num):
+        X, target = ndl.data.get_batch(
+            data, iter_idx, seq_len, device=device, dtype=dtype)
+        if opt:
+            opt.reset_grad()
+        pred, _ = model(X)
+        loss = loss_fn(pred, target)
+        if opt:
             opt.reset_grad()
             loss.backward()
-            if clip:  # Optional, not implemented
-                nn.utils.clip_grad_norm_(model.parameters(), clip)
+            if clip:
+                opt.clip_grad_norm(clip)
             opt.step()
-
-        errs.append((output.numpy().argmax(1) != y.numpy()).sum().item())
-        losses.append(loss.numpy().item())
-
-        # Detach hidden states to prevent backprop through entire sequence
-        if isinstance(h_prev, tuple):  # LSTM
-            h, c = h_prev
-            h_prev = (h.detach(), c.detach())
-        else:  # RNN
-            h_prev = h_prev.detach()
-
-    avg_acc = 1 - sum(errs) / (nbatch - seq_len)
-    avg_loss = sum(losses) / (nbatch - seq_len)
+        total_loss += loss.numpy()
+        total_error += np.sum(pred.numpy().argmax(1) != target.numpy())
+    avg_loss = total_loss / iter_num
+    avg_acc = 1 - total_error / (iter_num * seq_len)
     return avg_acc, avg_loss
     ### END YOUR SOLUTION
 
