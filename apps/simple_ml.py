@@ -206,31 +206,62 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
     """
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
-    if opt is not None:
-        model.train()
-    else:
-        model.eval()
-    total_loss = 0.0
-    total_acc = 0.0
+    # if opt is not None:
+    #     model.train()
+    # else:
+    #     model.eval()
+    # total_loss = 0.0
+    # total_acc = 0.0
+    # nbatch, batch_size = data.shape
+    # h = None
+    # for i in range(nbatch - seq_len):
+    #     X, y = ndl.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
+    #     out, h = model(X, h)
+    #     loss = loss_fn(out, y)
+    #     if isinstance(h, tuple):
+    #         h = (h[0].detach(), h[1].detach())
+    #     else:
+    #         h = h.detach()
+    #     if opt is not None:
+    #         opt.reset_grad()
+    #         loss.backward()
+    #         if clip is not None:
+    #             opt.clip_grad_norm(clip)
+    #         opt.step()
+    #     total_loss += loss.numpy().item()
+    #     total_acc += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy()).item()
+    # return total_acc / (nbatch - seq_len), total_loss / (nbatch - seq_len)
+    model.eval() if opt is None else model.train()
     nbatch, batch_size = data.shape
-    h = None
+    errs = []
+    losses = []
+    h_prev = None
+
     for i in range(nbatch - seq_len):
         X, y = ndl.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
-        out, h = model(X, h)
-        loss = loss_fn(out, y)
-        if isinstance(h, tuple):
-            h = (h[0].detach(), h[1].detach())
-        else:
-            h = h.detach()
-        if opt is not None:
+        output, h_prev = model(X, h_prev)
+        loss = loss_fn(output, y)
+
+        if model.training:
             opt.reset_grad()
             loss.backward()
-            if clip is not None:
-                opt.clip_grad_norm(clip)
+            if clip:  # Optional, not implemented
+                nn.utils.clip_grad_norm_(model.parameters(), clip)
             opt.step()
-        total_loss += loss.numpy().item()
-        total_acc += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy()).item()
-    return total_acc / (nbatch - seq_len), total_loss / (nbatch - seq_len)
+
+        errs.append((output.numpy().argmax(1) != y.numpy()).sum().item())
+        losses.append(loss.numpy().item())
+
+        # Detach hidden states to prevent backprop through entire sequence
+        if isinstance(h_prev, tuple):  # LSTM
+            h, c = h_prev
+            h_prev = (h.detach(), c.detach())
+        else:  # RNN
+            h_prev = h_prev.detach()
+
+    avg_acc = 1 - sum(errs) / (nbatch - seq_len)
+    avg_loss = sum(losses) / (nbatch - seq_len)
+    return avg_acc, avg_loss
     ### END YOUR SOLUTION
 
 

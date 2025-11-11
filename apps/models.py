@@ -102,9 +102,9 @@ class LanguageModel(nn.Module):
             else h is tuple of (h0, c0), each of shape (num_layers, bs, hidden_size)
         """
         ### BEGIN YOUR SOLUTION
+        seq_len, bs = x.shape
         x = self.embedding(x)
         x, h = self.sequence_model(x, h)
-        seq_len, bs = x.shape[:2]
         x = x.reshape((seq_len * bs, self.hidden_size))
         x = self.linear(x)
         return x, h
