@@ -206,57 +206,31 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
     """
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
-    # if opt is not None:
-    #     model.train()
-    # else:
-    #     model.eval()
-    # total_loss = 0.0
-    # total_acc = 0.0
-    # nbatch, batch_size = data.shape
-    # h = None
-    # for i in range(nbatch - seq_len):
-    #     X, y = ndl.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
-    #     out, h = model(X, h)
-    #     loss = loss_fn(out, y)
-    #     if isinstance(h, tuple):
-    #         h = (h[0].detach(), h[1].detach())
-    #     else:
-    #         h = h.detach()
-    #     if opt is not None:
-    #         opt.reset_grad()
-    #         loss.backward()
-    #         if clip is not None:
-    #             opt.clip_grad_norm(clip)
-    #         opt.step()
-    #     total_loss += loss.numpy().item()
-    #     total_acc += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy()).item()
-    # return total_acc / (nbatch - seq_len), total_loss / (nbatch - seq_len)
-    if opt:
+    if opt is not None:
         model.train()
     else:
         model.eval()
-    total_loss = 0
-    total_error = 0
-    n_batch, batch_size = data.shape
-    iter_num = n_batch - seq_len
-    for iter_idx in range(iter_num):
-        X, target = ndl.data.get_batch(
-            data, iter_idx, seq_len, device=device, dtype=dtype)
-        if opt:
-            opt.reset_grad()
-        pred, _ = model(X)
-        loss = loss_fn(pred, target)
-        if opt:
+    total_loss = 0.0
+    total_acc = 0.0
+    nbatch, batch_size = data.shape
+    h = None
+    for i in range(nbatch - seq_len):
+        X, y = ndl.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
+        out, h = model(X, h)
+        loss = loss_fn(out, y)
+        if isinstance(h, tuple):
+            h = (h[0].detach(), h[1].detach())
+        else:
+            h = h.detach()
+        if opt is not None:
             opt.reset_grad()
             loss.backward()
-            if clip:
+            if clip is not None:
                 opt.clip_grad_norm(clip)
             opt.step()
-        total_loss += loss.numpy()
-        total_error += np.sum(pred.numpy().argmax(1) != target.numpy())
-    avg_loss = total_loss / iter_num
-    avg_acc = 1 - total_error / (iter_num * seq_len)
-    return avg_acc, avg_loss
+        total_loss += loss.numpy().item()
+        total_acc += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy()).item()
+    return total_acc / (nbatch - seq_len), total_loss / (nbatch - seq_len)
     ### END YOUR SOLUTION
 
 
