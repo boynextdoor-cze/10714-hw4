@@ -557,7 +557,7 @@ __global__ void ReduceMaxKernel(const scalar_t *a, scalar_t *out, size_t size,
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size) {
     size_t block_start = gid * reduce_size;
-    size_t block_end = min(block_start + reduce_size, size);
+    size_t block_end = block_start + reduce_size;
     scalar_t max_val = a[block_start];
     for (size_t i = block_start + 1; i < block_end; i++) {
       max_val = fmaxf(max_val, a[i]);
@@ -589,7 +589,7 @@ __global__ void ReduceSumKernel(const scalar_t *a, scalar_t *out, size_t size,
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size) {
     size_t block_start = gid * reduce_size;
-    size_t block_end = min(block_start + reduce_size, size);
+    size_t block_end = block_start + reduce_size;
     scalar_t sum_val = a[block_start];
     for (size_t i = block_start + 1; i < block_end; i++) {
       sum_val += a[i];
