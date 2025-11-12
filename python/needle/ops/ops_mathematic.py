@@ -280,9 +280,10 @@ class MatMul(TensorOp):
     def gradient(self, out_grad, node):
         # BEGIN YOUR SOLUTION
         a, b = node.inputs
-        adjoint_a = out_grad @ transpose(b)
-        adjoint_b = transpose(a) @ out_grad
-        return summation(adjoint_a, axes=tuple(range(len(adjoint_a.shape) - len(a.shape)))), summation(adjoint_b, axes=tuple(range(len(adjoint_b.shape) - len(b.shape))))
+        if len(a.shape) <= 2:
+            adjoint_a = out_grad @ transpose(b)
+            adjoint_b = transpose(a) @ out_grad
+            return summation(adjoint_a, axes=tuple(range(len(adjoint_a.shape) - len(a.shape)))), summation(adjoint_b, axes=tuple(range(len(adjoint_b.shape) - len(b.shape))))
         # END YOUR SOLUTION
 
 
