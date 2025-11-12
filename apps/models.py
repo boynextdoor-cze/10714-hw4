@@ -82,15 +82,17 @@ class LanguageModel(nn.Module):
         self.linear = nn.Linear(hidden_size, output_size,
                                 device=device, dtype=dtype)
         self.sequence_model = None
+        print(seq_model)
         if seq_model == 'rnn':
             self.sequence_model = nn.RNN(embedding_size, hidden_size, num_layers, device=device, dtype=dtype)
         elif seq_model == 'lstm':
             self.sequence_model = nn.LSTM(embedding_size, hidden_size, num_layers, device=device, dtype=dtype)
         elif seq_model == 'transformer':
-            self.sequence_model = nn.Transformer(embedding_size, hidden_size, num_layers, device=device, dtype=dtype)
+            self.sequence_model = nn.Transformer(embedding_size, hidden_size, num_layers, sequence_len=seq_len, batch_first=True, device=device, dtype=dtype)
             self.linear = nn.Linear(embedding_size, output_size, device=device, dtype=dtype)
         else:
             raise ValueError(f"Invalid sequence model: {seq_model}")
+        print(self.sequence_model)
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         ### END YOUR SOLUTION
