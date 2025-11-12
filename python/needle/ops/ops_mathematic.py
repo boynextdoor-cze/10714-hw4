@@ -284,6 +284,22 @@ class MatMul(TensorOp):
             adjoint_a = out_grad @ transpose(b)
             adjoint_b = transpose(a) @ out_grad
             return summation(adjoint_a, axes=tuple(range(len(adjoint_a.shape) - len(a.shape)))), summation(adjoint_b, axes=tuple(range(len(adjoint_b.shape) - len(b.shape))))
+        else:
+            # a = (b, n, m), b = (m, p) -> out = (b, n, p)
+            adjoint_a = matmul(out_grad, transpose(b))
+            a_original_shape = a.shape
+            pre_shapes = 1
+            for i in range(len(a.shape) - 1):
+                pre_shapes *= a.shape[i]
+            a = a.reshape((pre_shapes, a.shape[-1]))
+            out_original_shape = out_grad.shape
+            pre_shapes = 1
+            for i in range(len(out_original_shape) - 1):
+                pre_shapes *= out_original_shape[i]
+            out_grad = out_grad.reshape((pre_shapes, out_original_shape[-1]))
+            adjoint_b = matmul(transpose(a), out_grad)
+            a = a.reshape(a_original_shape)
+            return summation(adjoint_a, axes=tuple(range(len(adjoint_a.shape) - len(a.shape)))), summation(adjoint_b, axes=tuple(range(len(adjoint_b.shape) - len(b.shape))))
         # END YOUR SOLUTION
 
 
