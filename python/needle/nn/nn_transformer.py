@@ -109,11 +109,11 @@ class MultiHeadAttention(Module):
         probs = None
 
         ### BEGIN YOUR SOLUTION
-        scores = self.matmul(q, ops.transpose(k, axes=(2, 3))) / np.sqrt(q_dim)
+        scores = self.matmul(q, k) / np.sqrt(q_dim)
         if self.causal:
-            scores += self.create_causal_mask(queries_len, keys_values_len, self.device)
+            scores += self.create_causal_mask(queries_len, keys_values_len, self.device).broadcast_to(scores.shape)
         probs = self.dropout(self.softmax(scores))
-        result = self.matmul(probs, v)
+        result = self.matmul(probs, ops.transpose(v, axes=(2, 3)))
         return result, probs
         ### END YOUR SOLUTION
 
