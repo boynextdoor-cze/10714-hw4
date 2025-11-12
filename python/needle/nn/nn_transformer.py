@@ -355,7 +355,7 @@ class Transformer(Module):
 
         ### BEGIN YOUR SOLUTION
         batch_size, seq_len, _ = x.shape
-        t = np.arange(seq_len, device=self.device, dtype=self.dtype)
+        t = np.arange(seq_len, dtype=self.dtype)
         t = np.repeat(t, batch_size, axis=0)
         t = t.reshape((seq_len, batch_size)).T
         t = Tensor(t, device=self.device, dtype=self.dtype)
