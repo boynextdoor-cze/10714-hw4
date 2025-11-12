@@ -100,7 +100,8 @@ class Linear(Module):
         # BEGIN YOUR SOLUTION
         mult = ops.matmul(X, self.weight)
         if self.bias is not None:
-            return mult + self.bias.broadcast_to(mult.shape)
+            broadcast_shape = [1] * (len(mult.shape) - 1) + [self.out_features]
+            return mult + self.bias.reshape(broadcast_shape).broadcast_to(mult.shape)
         else:
             return mult
         # END YOUR SOLUTION
