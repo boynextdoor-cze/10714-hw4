@@ -295,14 +295,13 @@ class TransformerLayer(Module):
         batch_size, seq_len, x_dim = x.shape
 
         ### BEGIN YOUR SOLUTION
-        x = x + self.layer1(x)
-        x = x.reshape((batch_size * seq_len, x_dim))
-        x = self.layer2(x)
-        x = x.reshape((batch_size, seq_len, x_dim))
-        x = x + self.dropout(x)
+        out1 = x + self.layer1(x)
+        out2 = self.layer2(out1.reshape((batch_size * seq_len, x_dim)))
+        out2 = out2.reshape((batch_size, seq_len, x_dim))
+        out = out1 + self.dropout(out2)
         ### END YOUR SOLUTION
 
-        return x
+        return out
 
 
 class Transformer(Module):
