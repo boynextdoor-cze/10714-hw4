@@ -261,12 +261,12 @@ class TransformerLayer(Module):
         )
         self.dropout = Dropout(dropout)
         self.linear1 = Linear(
-            q_features, hidden_size, bias=False,
+            q_features, hidden_size, bias=True,
             device=device, dtype=dtype
         )
         self.relu = ReLU()
         self.linear2 = Linear(
-            hidden_size, q_features, bias=False,
+            hidden_size, q_features, bias=True,
             device=device, dtype=dtype
         )
         self.layernorm = LayerNorm1d(q_features, device=device, dtype=dtype)
