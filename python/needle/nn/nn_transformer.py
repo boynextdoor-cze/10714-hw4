@@ -253,7 +253,7 @@ class TransformerLayer(Module):
             q_features=q_features,
             num_head=num_head,
             dim_head=dim_head,
-            hidden_size=hidden_size,
+            out_features=q_features,
             dropout=dropout,
             causal=causal,
             device=device,
