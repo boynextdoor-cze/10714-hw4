@@ -79,11 +79,15 @@ class LanguageModel(nn.Module):
         super(LanguageModel, self).__init__()
         ### BEGIN YOUR SOLUTION
         self.embedding = nn.Embedding(output_size, embedding_size, device=device, dtype=dtype)
+        self.linear = nn.Linear(hidden_size, output_size,
+                                device=device, dtype=dtype)
         if seq_model == 'rnn':
             self.sequence_model = nn.RNN(embedding_size, hidden_size, num_layers, device=device, dtype=dtype)
         elif seq_model == 'lstm':
             self.sequence_model = nn.LSTM(embedding_size, hidden_size, num_layers, device=device, dtype=dtype)
-        self.linear = nn.Linear(hidden_size, output_size, device=device, dtype=dtype)
+        elif seq_model == 'transformer':
+            self.sequence_model = nn.Transformer(embedding_size, hidden_size, num_layers, device=device, dtype=dtype)
+            self.linear = nn.Linear(embedding_size, output_size, device=device, dtype=dtype)
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         ### END YOUR SOLUTION
