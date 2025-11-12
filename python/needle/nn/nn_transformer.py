@@ -298,6 +298,7 @@ class TransformerLayer(Module):
         x = x + self.layer1(x)
         x = x.reshape((batch_size * seq_len, x_dim))
         x = self.layer2(x)
+        x = x.reshape((batch_size, seq_len, x_dim))
         x = x + self.dropout(x)
         ### END YOUR SOLUTION
 
