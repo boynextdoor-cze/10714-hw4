@@ -268,9 +268,9 @@ class MatMul(TensorOp):
             pre_shapes = 1
             for i in range(len(a.shape) - 1):
                 pre_shapes *= a.shape[i]
-            a = reshape(a, (pre_shapes, a.shape[-1]))
+            a = a.reshape((pre_shapes, a.shape[-1]))
             out = a @ b
-            out = reshape(out, (*a_original_shape[:-1], b.shape[-1]))
+            out = out.reshape((*a_original_shape[:-1], b.shape[-1]))
         else:
             out = a @ b
         return out
